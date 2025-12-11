@@ -52,10 +52,12 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cartStore.js'
+import { useAuthStore } from '@/stores/authStore.js' 
 import CartItem from '@/components/cart/CartItem.vue'
 
 const router = useRouter()
 const cartStore = useCartStore()
+const authStore = useAuthStore() 
 
 // 運費計算（滿額免運）
 const shippingFee = computed(() => {
@@ -88,6 +90,21 @@ const confirmClearCart = () => {
 
 // 前往結帳
 const goToCheckout = () => {
+  // 檢查是否已登入
+  if (!authStore.isLoggedIn) {
+    // 未登入，詢問是否前往登入
+    if (confirm('請先登入才能結帳，是否前往登入頁面？')) {
+      // 記住當前頁面，登入後可以回來
+      router.push({
+        path: '/login',
+        // query 是網址中 ? 後面的參數
+        query: { redirect: '/cart' }
+      })
+    }
+    return  // 停止執行，不要往下走
+  }
+  
+  // ✅ 已登入，前往結帳頁
   router.push('/checkout')
 }
 </script>
@@ -139,7 +156,7 @@ const goToCheckout = () => {
 .btn-continue {
   display: inline-block;
   padding: 12px 40px;
-  background-color: #27ae60;
+  background-color: #3A6B5C;
   color: white;
   text-decoration: none;
   border-radius: 8px;
@@ -148,7 +165,7 @@ const goToCheckout = () => {
 }
 
 .btn-continue:hover {
-  background-color: #229954;
+  background-color: #2a6626;
 }
 
 /* 購物車內容 */
@@ -203,7 +220,7 @@ const goToCheckout = () => {
 .btn-checkout {
   width: 100%;
   padding: 15px;
-  background-color: #27ae60;
+  background-color: #3A6B5C;;
   color: white;
   border: none;
   border-radius: 8px;
@@ -215,7 +232,7 @@ const goToCheckout = () => {
 }
 
 .btn-checkout:hover {
-  background-color: #229954;
+  background-color: #268065de;;
 }
 
 .btn-clear {

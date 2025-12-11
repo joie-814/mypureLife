@@ -69,9 +69,9 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import ProductCard from '@/components/ProductCard.vue'
 
 // 引入圖片
-import slide1 from '@/assets/carousel/carousel1.webp'
-import slide2 from '@/assets/carousel/carousel2.webp'
-import slide3 from '@/assets/carousel/carousel3.webp'
+import slide1 from '@/assets/carousel/row1.png'
+import slide2 from '@/assets/carousel/row2.png'
+import slide3 from '@/assets/carousel/row3.png'
 
 
 //輪播相關的程式碼
@@ -382,14 +382,14 @@ onUnmounted(() => {
 }
 
 .view-more {
-  color: #327a2ea9;
+  color: #3A6B5C;;
   text-decoration: none;
   font-size: 16px;
   transition: all 0.3s ease;
 }
 
 .view-more:hover {
-  color: #327a2ea9;
+  color: #3A6B5C;;
   transform: translateX(5px);
 }
 

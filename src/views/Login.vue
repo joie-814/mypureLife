@@ -193,9 +193,12 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore.js' 
 
 const router = useRouter()
+const route = useRoute() 
+const authStore = useAuthStore()
 const isLogin = ref(true)
 
 // 登入表單資料
@@ -302,9 +305,25 @@ const handleLogin = () => {
   // 驗證通過，執行登入
   console.log('登入資料:', loginForm.value)
   
+  // 模擬後端回傳的使用者資料和 token
+  const mockUserData = {
+    member_id: 1,
+    name: '王先生',
+    email: loginForm.value.email,
+    phone: '0912345678',
+    member_level: 'general'
+  }
+  const mockToken = 'mock_jwt_token_' + Date.now()
+  
+  // 儲存登入狀態到 authStore
+  authStore.login(mockUserData, mockToken)
+  
+  // 檢查是否有要返回的頁面（從購物車跳轉過來的）
+  const redirect = route.query.redirect || '/'
+
   // TODO: 這裡之後會串接 API
   alert('登入成功！')
-  router.push('/')
+  router.push(redirect)
 }
 
 // 處理註冊
@@ -361,9 +380,27 @@ const handleRegister = () => {
   // 驗證通過，執行註冊
   console.log('註冊資料:', registerForm.value)
   
-  // TODO: 這裡之後會串接 API
-  alert('註冊成功！')
-  isLogin.value = true
+  // 模擬後端回傳的使用者資料和 token
+  const mockUserData = {
+    member_id: 2,
+    name: registerForm.value.name,
+    email: registerForm.value.email,
+    phone: registerForm.value.phone,
+    member_level: 'general'
+  }
+  const mockToken = 'mock_jwt_token_' + Date.now()
+  
+  // 儲存登入狀態到 authStore
+  // 這裡是先把上面的假資料傳進來
+  authStore.login(mockUserData, mockToken)
+  
+  alert('註冊成功！已自動登入')
+  
+  // 檢查是否有要返回的頁面
+  // 讀取網址中的 redirect 參數 
+  // 有參數 → 用參數的值（例如 /cart）沒參數 → 用預設值首頁 /
+  const redirect = route.query.redirect || '/'
+  router.push(redirect)
 }
 </script>
 
@@ -394,7 +431,7 @@ const handleRegister = () => {
 
 .logo h1 {
   font-size: 2.5rem;
-  color: #327a2ea9;
+  color: #3A6B5C;
   margin: 0;
   font-weight: bold;
   letter-spacing: 2px;
@@ -425,7 +462,7 @@ const handleRegister = () => {
 
 .tab-btn.active {
   background: white;
-  color: #327a2ea9;
+  color: #3A6B5C;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
@@ -472,7 +509,7 @@ const handleRegister = () => {
 
 .form-group input:focus {
   outline: none;
-  border-color: #327a2ea9;
+  border-color: #3A6B5C;
   box-shadow: 0 0 0 3px rgba(50, 122, 46, 0.1);
 }
 
@@ -507,7 +544,7 @@ const handleRegister = () => {
 .submit-btn {
   width: 100%;
   padding: 1rem;
-  background: #327a2ea9;
+  background: #3A6B5C;
   color: white;
   border: none;
   border-radius: 8px;
@@ -518,7 +555,7 @@ const handleRegister = () => {
 }
 
 .submit-btn:hover {
-  background: #2a6625;
+  background: #2a6626;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(50, 122, 46, 0.3);
 }
@@ -534,14 +571,14 @@ const handleRegister = () => {
 }
 
 .link {
-  color: #327a2ea9;
+  color: #3A6B5C;
   text-decoration: none;
   font-size: 0.9rem;
   transition: color 0.3s;
 }
 
 .link:hover {
-  color: #2a6625;
+  color: #2a6626;
   text-decoration: underline;
 }
 
@@ -576,7 +613,7 @@ const handleRegister = () => {
   width: 24px;
   height: 24px;
   background: #e8f5e3;
-  color: #327a2ea9;
+  color: #3A6B5C;
   border-radius: 50%;
   display: flex;
   align-items: center;

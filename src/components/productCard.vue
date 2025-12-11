@@ -154,7 +154,7 @@ const goToDetail = () => {
 }
 
 .add-to-cart-btn {
-  background: #327a2ea9;
+  background: #3A6B5C;;
   color: #fff;
   border: none;
   padding: 8px 16px;

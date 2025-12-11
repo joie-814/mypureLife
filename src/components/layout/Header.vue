@@ -56,7 +56,34 @@
       <!-- 右側功能 -->
       <div class="header-actions">
         <button class="icon-btn">🔍 搜尋</button>
-        <button class="icon-btn" @click="$router.push('/login')">👤 會員中心</button>
+
+      <!-- 根據登入狀態顯示不同內容 -->
+      <div class="user-section">
+        <!-- 未登入 -->
+        <button v-if="!authStore.isLoggedIn" class="icon-btn" @click="$router.push('/login')">
+          👤 登入/註冊
+        </button>
+        
+        <!-- 已登入 -->
+        <div v-else class="user-menu" 
+            @mouseenter="showUserMenu = true" 
+            @mouseleave="showUserMenu = false">
+          <button class="icon-btn">
+            👤 {{ authStore.user.name }}
+          </button>
+          
+          <!-- 下拉選單 -->
+          <div class="dropdown user-dropdown" v-show="showUserMenu">
+            <router-link to="/member" class="dropdown-item">會員中心</router-link>
+            <router-link to="/orders" class="dropdown-item">訂單查詢</router-link>
+            <router-link to="/subscription" class="dropdown-item">我的定期購</router-link>
+            <!-- 分隔線 -->
+            <div class="dropdown-divider"></div>
+            <a href="#" class="dropdown-item" @click.prevent="handleLogout">登出</a>
+          </div>
+        </div>
+      </div>
+        
         <router-link to="/cart" class="icon-btn cart-link">
           🛒 購物車
           <span class="cart-badge" v-if="cartStore.totalItems > 0">
@@ -70,10 +97,25 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cartStore.js'
-const cartStore = useCartStore()
-const activeDropdown = ref(null) 
+import { useAuthStore } from '@/stores/authStore.js'
 
+const router = useRouter()
+const cartStore = useCartStore()
+const authStore = useAuthStore()
+const activeDropdown = ref(null) 
+const showUserMenu = ref(false)
+
+// 登出處理函數
+const handleLogout = () => {
+  if (confirm('確定要登出嗎？')) {
+    showUserMenu.value = false
+    authStore.logout()
+    router.push('/')
+    alert('已成功登出')
+  }
+}
 
 </script>
 
@@ -87,7 +129,7 @@ const activeDropdown = ref(null)
 }
 /* 頂部橫幅 */
 .top-banner {
-  background: #327a2ea9;
+  background: #3A6B5C;
   color: white;
   padding: 0.5rem 2rem;
   display: flex;
@@ -146,7 +188,7 @@ const activeDropdown = ref(null)
 
 .logo h1 {
   font-size: 2rem;
-  color: #327a2ea9;
+  color: #3A6B5C;
   margin: 0;
   cursor: pointer;
 }
@@ -175,7 +217,7 @@ const activeDropdown = ref(null)
   left: 0;
   width: 0;
   height: 2px;
-  background: 327a2ea9;
+  background: #3A6B5C;
   transition: width 0.3s;
 }
 
@@ -184,12 +226,12 @@ const activeDropdown = ref(null)
 }
 
 .nav-link:hover {
-  color: #327a2ea9;
+  color: #3A6B5C;
 }
 
 /* 當前頁面高亮 */
 .nav-link.router-link-active {
-  color: #327a2ea9;
+  color: #3A6B5C;
   font-weight: 600;
 }
 
@@ -227,7 +269,7 @@ const activeDropdown = ref(null)
   text-align: center;
 }
 
-/* ✅ 新增下拉選單樣式 */
+/* 下拉選單樣式 */
 
 .dropdown {
   position: absolute;
@@ -247,11 +289,12 @@ const activeDropdown = ref(null)
   color: #333;
   text-decoration: none;
   transition: background 0.2s;
+  cursor: pointer;
 }
 
 .dropdown-item:hover {
   background: #f5f5f5;
-  color: #327a2ea9;
+  color: #3A6B5C;
 }
 
 .cart-link {
@@ -276,6 +319,17 @@ const activeDropdown = ref(null)
   text-align: center;
   line-height: 1.2;
 }
+
+/* 使用者選單樣式 */
+.user-section {
+  position: relative;
+}
+
+.user-menu {
+  position: relative;
+}
+
+
 
 /* 手機版 */
 @media (max-width: 768px) {

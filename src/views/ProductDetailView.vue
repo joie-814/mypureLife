@@ -219,7 +219,7 @@ const goBack = () => {
 
 .current-price {
   font-size: 36px;
-  color: #27ae60;
+  color: #3A6B5C;
   font-weight: bold;
   margin-right: 15px;
 }
@@ -268,9 +268,9 @@ const goBack = () => {
 }
 
 .quantity-selector button:hover:not(:disabled) {
-  background: #27ae60;
+  background: #3A6B5C;
   color: white;
-  border-color: #27ae60;
+  border-color: #3A6B5C;
 }
 
 .quantity-selector button:disabled {
@@ -290,7 +290,7 @@ const goBack = () => {
 
 .quantity-selector input:focus {
   outline: none;
-  border-color: #27ae60;
+  border-color: #3A6B5C;
 }
 
 /* 隱藏數字輸入框的箭頭 */
@@ -329,7 +329,7 @@ const goBack = () => {
 }
 
 .btn-add-to-cart {
-  background: #27ae60;
+  background: #3A6B5C;
   color: white;
 }
 
@@ -341,12 +341,12 @@ const goBack = () => {
 
 .btn-buy-now {
   background: white;
-  color: #27ae60;
-  border: 2px solid #27ae60;
+  color: #3A6B5C;
+  border: 2px solid #3A6B5C;
 }
 
 .btn-buy-now:hover {
-  background: #27ae60;
+  background: #3A6B5C;
   color: white;
   transform: translateY(-2px);
 }

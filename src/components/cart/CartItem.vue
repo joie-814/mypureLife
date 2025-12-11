@@ -161,7 +161,7 @@ const removeItem = () => {
 
 .item-price {
   font-size: 20px;
-  color: #27ae60;
+  color: #3A6B5C;
   font-weight: bold;
   margin: 0;
 }
@@ -198,9 +198,9 @@ const removeItem = () => {
 }
 
 .qty-btn:hover:not(:disabled) {
-  background-color: #27ae60;
+  background-color: #3A6B5C;
   color: white;
-  border-color: #27ae60;
+  border-color: #3A6B5C;
 }
 
 .qty-btn:disabled {
@@ -220,7 +220,7 @@ const removeItem = () => {
 
 .qty-input:focus {
   outline: none;
-  border-color: #27ae60;
+  border-color: #3A6B5C;
 }
 
 /* 隱藏數字輸入框的上下箭頭 */

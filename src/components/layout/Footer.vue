@@ -55,8 +55,8 @@
 
 <style scoped>
 .footer {
-  background-color: #fff;
-  border-top: 3px solid #327a2ea9;
+  background-color: #3A6B5C;
+  border-top: 3px solid #fdfefe;
   padding: 3rem 0 1rem;
   margin-top: 4rem;
 }
@@ -79,13 +79,13 @@
 .company-name {
   font-size: 28px;
   font-weight: bold;
-  color: #327a2ea9;
+  color: #ffffff;
   margin: 0 0 1.5rem 0;
   letter-spacing: 1px;
 }
 
 .company-info {
-  color: #666;
+  color: #ffffff;
   line-height: 1.8;
 }
 
@@ -102,7 +102,7 @@
 }
 
 .footer-column h3 {
-  color: #327a2ea9;
+  color: #ffffff;
   font-size: 16px;
   font-weight: bold;
   margin: 0 0 1rem 0;
@@ -121,7 +121,7 @@
 }
 
 .footer-column a {
-  color: #666;
+  color: #ffffff;
   text-decoration: none;
   font-size: 14px;
   transition: all 0.3s ease;
@@ -129,19 +129,19 @@
 }
 
 .footer-column a:hover {
-  color: #327a2ea9;
+  color: #e5e8e7;
   padding-left: 5px;
 }
 
 /* 底部版權 */
 .footer-bottom {
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid #ffffff;
   padding-top: 1.5rem;
   text-align: center;
 }
 
 .footer-bottom p {
-  color: #999;
+  color: #ffffff;
   font-size: 13px;
   margin: 0;
 }
