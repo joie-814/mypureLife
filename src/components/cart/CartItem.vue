@@ -3,15 +3,24 @@
 <template>
   <div class="cart-item">
     <div class="item-image">
-      <img :src="item.imageUrl || '/images/default-product.jpg'" :alt="item.productName">
+      <img :src="productImage" :alt="item.productName">>
     </div>
 
     <div class="item-info">
       <h3 class="item-name">{{ item.productName }}</h3>
-      <p class="item-price">NT$ {{ item.price.toLocaleString() }}</p>
-      <p class="item-stock" v-if="item.maxStock <= 10">
+      <p class="item-category">{{ item.category }}</p>
+      <div class="item-price">
+        <!-- 有促銷價時顯示原價刪除線 -->
+        <span v-if="item.promotionPrice" class="original-price">
+          NT$ {{ Number(item.price).toLocaleString() }}
+        </span>
+        <span class="actual-price">
+          NT$ {{ Number(item.actualPrice).toLocaleString() }}
+        </span>
+      </div>
+      <p class="item-stock" v-if="item.stockQuantity != null && item.stockQuantity <= 10">
         <i class="fas fa-exclamation-circle"></i>
-        剩餘 {{ item.maxStock }} 件
+        剩餘 {{ item.stockQuantity }} 件
       </p>
     </div>
 
@@ -19,7 +28,7 @@
       <button 
         class="qty-btn" 
         @click="decreaseQuantity"
-        :disabled="item.quantity <= 1"
+        :disabled="item.quantity <= 1|| isUpdating"
       >
         <i class="fas fa-minus"></i>
       </button>
@@ -27,15 +36,15 @@
         type="number" 
         class="qty-input" 
         :value="item.quantity"
-        @input="handleQuantityInput"
-        @blur="validateQuantity"
+        @change="handleQuantityChange"
         min="1"
-        :max="item.maxStock"
+        :max="item.stockQuantity"
+        :disabled="isUpdating"
       >
       <button 
         class="qty-btn" 
         @click="increaseQuantity"
-        :disabled="item.quantity >= item.maxStock"
+        :disabled="item.quantity >= item.stockQuantity || isUpdating"
       >
         <i class="fas fa-plus"></i>
       </button>
@@ -43,10 +52,10 @@
 
     <div class="item-subtotal">
       <p class="subtotal-label">小計</p>
-      <p class="subtotal-price">NT$ {{ subtotal.toLocaleString() }}</p>
+      <p class="subtotal-price">NT$ {{ Number(item.subtotal).toLocaleString() }}</p>
     </div>
 
-    <button class="btn-remove" @click="removeItem">
+    <button class="btn-remove" @click="removeItem" :disabled="isUpdating">
       <i class="fas fa-trash-alt"></i>
     </button>
   </div>
@@ -64,52 +73,49 @@ const props = defineProps({
 
 const emit = defineEmits(['update-quantity', 'remove'])
 
-// 計算小計
-const subtotal = computed(() => {
-  return props.item.price * props.item.quantity
-})
+// 更新中狀態（防止連點）
+const isUpdating = ref(false)
 
-// 暫存輸入的數量
-const tempQuantity = ref(props.item.quantity)
+// 商品圖片
+const productImage = computed(() => {
+  return props.item.imageUrl || '/images/default-product.jpg'
+})
 
 // 減少數量
 const decreaseQuantity = () => {
-  if (props.item.quantity > 1) {
-    emit('update-quantity', props.item.productId, props.item.quantity - 1)
+  if (props.item.quantity > 1 && !isUpdating.value) {
+    isUpdating.value = true
+    emit('update-quantity', props.item.quantity - 1)
+    setTimeout(() => { isUpdating.value = false }, 300)
   }
 }
 
 // 增加數量
 const increaseQuantity = () => {
-  if (props.item.quantity < props.item.maxStock) {
-    emit('update-quantity', props.item.productId, props.item.quantity + 1)
+  if (props.item.quantity < props.item.stockQuantity && !isUpdating.value) {
+    isUpdating.value = true
+    emit('update-quantity', props.item.quantity + 1)
+    setTimeout(() => { isUpdating.value = false }, 300) //使用者點擊增加數量後，按鈕會禁用 300ms
   }
 }
 
 // 處理手動輸入數量
-const handleQuantityInput = (event) => {
-  tempQuantity.value = event.target.value
-}
-
-// 驗證並更新數量
-const validateQuantity = () => {
-  let newQuantity = parseInt(tempQuantity.value)
+const handleQuantityChange = (event) => {
+  let newQuantity = parseInt(event.target.value)
   
-  // 驗證輸入值
   if (isNaN(newQuantity) || newQuantity < 1) {
     newQuantity = 1
-  } else if (newQuantity > props.item.maxStock) {
-    newQuantity = props.item.maxStock
-    alert(`此商品庫存僅剩 ${props.item.maxStock} 件`)
+  } else if (newQuantity > props.item.stockQuantity) {
+    newQuantity = props.item.stockQuantity
+    alert(`此商品庫存僅剩 ${props.item.stockQuantity} 件`)
   }
   
-  tempQuantity.value = newQuantity
-  emit('update-quantity', props.item.productId, newQuantity)
+  emit('update-quantity', newQuantity)
 }
 
 // 刪除商品
 const removeItem = () => {
-  emit('remove', props.item.productId)
+  emit('remove')
 }
 </script>
 
@@ -159,11 +165,29 @@ const removeItem = () => {
   font-weight: 600;
 }
 
+.item-category {
+  font-size: 14px;
+  color: #7f8c8d;
+  margin: 0;
+}
+
 .item-price {
   font-size: 20px;
   color: #3A6B5C;
   font-weight: bold;
   margin: 0;
+}
+
+.original-price {
+  font-size: 14px;
+  color: #95a5a6;
+  text-decoration: line-through;
+}
+
+.actual-price {
+  font-size: 20px;
+  color: #3A6B5C;
+  font-weight: bold;
 }
 
 .item-stock {
@@ -223,6 +247,10 @@ const removeItem = () => {
   border-color: #3A6B5C;
 }
 
+.qty-input:disabled {
+  background-color: #f5f5f5;
+}
+
 /* 隱藏數字輸入框的上下箭頭 */
 .qty-input::-webkit-inner-spin-button,
 .qty-input::-webkit-outer-spin-button {
@@ -268,9 +296,14 @@ const removeItem = () => {
   font-size: 18px;
 }
 
-.btn-remove:hover {
+.btn-remove:hover:not(:disabled) {
   background-color: #fee;
   color: #e74c3c;
+}
+
+.btn-remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* 響應式設計 */

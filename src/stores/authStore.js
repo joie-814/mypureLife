@@ -8,6 +8,7 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { useCartStore } from '@/stores/cartStore'
 
 export const useAuthStore = defineStore('auth', () => {
   // 儲存使用者資料
@@ -42,7 +43,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // 登入 - 接收後端回傳的 LoginResponse
-  const login = (loginResponse) => {
+  const login = async(loginResponse) => {
     // 從 loginResponse 取出資料
     user.value = {
       memberId: loginResponse.memberId,
@@ -52,10 +53,18 @@ export const useAuthStore = defineStore('auth', () => {
     }
     token.value = loginResponse.token
     saveAuth()
+
+    // 登入成功後，同步購物車（localStorage → 後端）
+    const cartStore = useCartStore()
+    await cartStore.syncCartAfterLogin()
   }
 
   // 登出
   const logout = () => {
+    // 通知購物車清理
+    const cartStore = useCartStore()
+    cartStore.onLogout()
+
     clearAuth()
   }
 
@@ -81,6 +90,8 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     token,
     isLoggedIn,
+    memberId,
+    memberName,
     login,
     logout,
     loadAuth

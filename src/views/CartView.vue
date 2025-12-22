@@ -7,6 +7,12 @@
       <p class="item-count">{{ cartStore.totalItems }} 件商品</p>
     </div>
 
+    <!-- 載入中 -->
+    <div v-if="cartStore.isLoading && cartStore.cartItems.length === 0" class="loading">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>載入中...</p>
+    </div>
+
     <!-- 購物車為空 -->
     <div v-if="cartStore.cartItems.length === 0" class="empty-cart">
       <i class="fas fa-shopping-cart"></i>
@@ -21,8 +27,8 @@
           v-for="item in cartStore.cartItems" 
           :key="item.productId"
           :item="item"
-          @update-quantity="handleUpdateQuantity"
-          @remove="handleRemove"
+          @update-quantity="(newQty) => handleUpdateQuantity(item, newQty)"
+          @remove="() => handleRemove(item)"
         />
       </div>
 
@@ -30,26 +36,36 @@
         <h2>訂單摘要</h2>
         <div class="summary-row">
           <span>小計</span>
-          <span>NT$ {{ cartStore.totalPrice.toLocaleString() }}</span>
+          <span>NT$ {{ formattedTotalPrice }}</span>
         </div>
         <div class="summary-row">
           <span>運費</span>
-          <span>NT$ {{ shippingFee.toLocaleString() }}</span>
+          <span>NT$ {{ shippingFee }}</span>
         </div>
+
+        <p class="free-shipping-hint" v-if="cartStore.totalPrice < 1200">
+          再買 NT$ {{freeShippingGap }} 即可免運
+        </p>
+
         <div class="summary-divider"></div>
         <div class="summary-row total">
           <span>總計</span>
-          <span>NT$ {{ finalTotal.toLocaleString() }}</span>
+          <span>NT$ {{ formattedFinalTotal }}</span>
         </div>
-        <button class="btn-checkout" @click="goToCheckout">前往結帳</button>
-        <button class="btn-clear" @click="confirmClearCart">清空購物車</button>
+        <button class="btn-checkout" @click="goToCheckout" :disabled="cartStore.isLoading">前往結帳</button>
+        <button class="btn-clear" @click="confirmClearCart" :disabled="cartStore.isLoading">清空購物車</button>
       </div>
+    </div>
+    <!-- 錯誤訊息 -->
+    <div v-if="cartStore.error" class="error-message">
+      <i class="fas fa-exclamation-circle"></i>
+      {{ cartStore.error }}
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, watch} from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cartStore.js'
 import { useAuthStore } from '@/stores/authStore.js' 
@@ -58,6 +74,20 @@ import CartItem from '@/components/cart/CartItem.vue'
 const router = useRouter()
 const cartStore = useCartStore()
 const authStore = useAuthStore() 
+
+// 頁面載入時取得購物車資料
+onMounted(async () => {
+  if (authStore.isLoggedIn) {
+    await cartStore.loadCart()
+  }
+})
+
+// 監聽登入狀態變化，重新載入購物車
+watch(() => authStore.isLoggedIn, async (newVal) => {
+  if (newVal) {
+    await cartStore.syncCartAfterLogin()
+  }
+})
 
 // 運費計算（滿額免運）
 const shippingFee = computed(() => {
@@ -69,42 +99,65 @@ const finalTotal = computed(() => {
   return cartStore.totalPrice + shippingFee.value
 })
 
-// 更新數量
-const handleUpdateQuantity = (productId, newQuantity) => {
-  cartStore.updateQuantity(productId, newQuantity)
+// 格式化金額
+// 小計
+const formattedTotalPrice = computed(() => {
+  return Number(cartStore.totalPrice).toLocaleString()
+})
+
+// 小計 + 運費
+const formattedFinalTotal = computed(() => {
+  return Number(finalTotal.value).toLocaleString()
+})
+
+// 距離免運還差多少
+const freeShippingGap = computed(() => {
+  return (1200 - cartStore.totalPrice).toLocaleString()
+})
+
+// 更新數量 使用 getItemId 取得正確的 ID
+const handleUpdateQuantity = async (item, newQuantity) => {
+  const itemId = cartStore.getItemId(item)
+  const result = await cartStore.updateQuantity(itemId, newQuantity)
+  if (!result.success) {
+    alert(result.message)
+  }
 }
 
 // 刪除商品
-const handleRemove = (productId) => {
+const handleRemove = async (item) => {
   if (confirm('確定要移除此商品嗎？')) {
-    cartStore.removeFromCart(productId)
+    const itemId = cartStore.getItemId(item)
+    const result = await cartStore.removeFromCart(itemId)
+    if (!result.success) {
+      alert(result.message)
+    }
   }
 }
 
 // 清空購物車
-const confirmClearCart = () => {
+const confirmClearCart = async () => {
   if (confirm('確定要清空購物車嗎？')) {
-    cartStore.clearCart()
+    const result = await cartStore.clearCart()
+    if (!result.success) {
+      alert(result.message)
+    }
   }
 }
 
 // 前往結帳
 const goToCheckout = () => {
-  // 檢查是否已登入
+  // 結帳時檢查是否登入
   if (!authStore.isLoggedIn) {
-    // 未登入，詢問是否前往登入
     if (confirm('請先登入才能結帳，是否前往登入頁面？')) {
-      // 記住當前頁面，登入後可以回來
       router.push({
         path: '/login',
-        // query 是網址中 ? 後面的參數
-        query: { redirect: '/cart' }
+        query: { redirect: '/checkout' }
       })
     }
-    return  // 停止執行，不要往下走
+    return
   }
   
-  // 已登入，前往結帳頁
   router.push('/checkout')
 }
 </script>
@@ -134,6 +187,23 @@ const goToCheckout = () => {
   color: #7f8c8d;
   font-size: 16px;
 }
+
+/* 載入中 */
+.loading {
+  text-align: center;
+  padding: 80px 20px;
+  color: #7f8c8d;
+}
+
+.loading i {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.loading p {
+  font-size: 18px;
+}
+
 
 /* 空購物車 */
 .empty-cart {
@@ -205,6 +275,12 @@ const goToCheckout = () => {
   color: #34495e;
 }
 
+.free-shipping-hint {
+  font-size: 13px;
+  color: #e67e22;
+  margin: 0 0 15px 0;
+}
+
 .summary-divider {
   border-top: 2px solid #dee2e6;
   margin: 20px 0;
@@ -231,8 +307,13 @@ const goToCheckout = () => {
   margin-top: 20px;
 }
 
-.btn-checkout:hover {
-  background-color: #268065de;;
+.btn-checkout:hover:not(:disabled) {
+  background-color: #2d5447;
+}
+
+.btn-checkout:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn-clear {
@@ -248,9 +329,26 @@ const goToCheckout = () => {
   margin-top: 10px;
 }
 
-.btn-clear:hover {
+.btn-clear:hover:not(:disabled) {
   background-color: #e74c3c;
   color: white;
+}
+
+.btn-clear:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 錯誤訊息 */
+.error-message {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #fee;
+  color: #e74c3c;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 /* 響應式設計 */

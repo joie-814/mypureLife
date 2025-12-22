@@ -102,6 +102,11 @@ const productImage = computed(() => {
   return product.value.imageUrl || '/images/products/default.jpeg'
 })
 
+// 生命週期
+onMounted(() => {
+  fetchProduct()
+})
+
 // 從 API 取得商品詳情
 const fetchProduct = async () => {
   isLoading.value = true
@@ -123,11 +128,6 @@ const fetchProduct = async () => {
     isLoading.value = false
   }
 }
-
-// 生命週期
-onMounted(() => {
-  fetchProduct()
-})
 
 // 減少數量
 const decreaseQuantity = () => {
@@ -162,10 +162,12 @@ const validateQuantityInput = (event) => {
 const addToCart = () => {
   const cartProduct = {
     productId: product.value.productId,
+    category: product.value.category,
     productName: product.value.productName,
-    price: displayPrice.value,
-    imageUrl: productImage.value,
-    stock: product.value.stockQuantity || 99
+    price: product.value.price,
+    promotionPrice: product.value.promotionPrice,
+    stockQuantity: product.value.stockQuantity, 
+    imageUrl: product.value.imageUrl,
   }
   
   cartStore.addToCart(cartProduct, quantity.value)

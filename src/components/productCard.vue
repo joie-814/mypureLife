@@ -49,11 +49,13 @@ const productImage = computed(() => {
 // 快速加入購物車（預設 1 件）
 const handleAddToCart = () => {
   const cartProduct = {
-    productId: props.product.id || props.product.productId,
-    productName: props.product.name,
+    productId: props.product.productId,
+    category: props.product.category,
+    productName: props.product.productName,
     price: props.product.price,
-    imageUrl: props.product.image,
-    stock: props.product.stock || 99
+    promotionPrice: props.product.promotionPrice,
+    stock: props.product.stockQuantity,
+    imageUrl: props.product.imageUrl
   }
   
   cartStore.addToCart(cartProduct, 1)
