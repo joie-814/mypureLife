@@ -41,20 +41,29 @@ const routes = [
     }
   },
   {
+  path: '/order-complete',
+  name: 'OrderComplete',
+  component: () => import('@/views/OrderCompleteView.vue'),
+  meta: { requiresAuth: true }
+  },
+  {
+    path: '/orders',
+    name: 'Orders',
+    component: () => import('@/views/OrderListView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/orders/:id',
+    name: 'OrderDetail',
+    component: () => import('@/views/OrderDetailView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/member',
     name: 'MemberCenter',
     component: () => import('../views/MemberCenter.vue'),
     meta: { 
       title: '會員中心 - pureLife',
-      requiresAuth: true  // 標記需要登入
-    }
-  },
-  {
-    path: '/orders',
-    name: 'OrderList',
-    component: () => import('../views/OrderList.vue'),
-    meta: { 
-      title: '訂單查詢 - pureLife',
       requiresAuth: true  // 標記需要登入
     }
   },
