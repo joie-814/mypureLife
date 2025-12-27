@@ -3,7 +3,10 @@
 <template>
   <div class="cart-item">
     <div class="item-image">
-      <img :src="productImage" :alt="item.productName">>
+        <img 
+          :src="getProductImageUrl(props.item.imageUrl || '/images/products/default.jpeg')" 
+          :alt="props.item.productName"
+        />
     </div>
 
     <div class="item-info">
@@ -77,9 +80,13 @@ const emit = defineEmits(['update-quantity', 'remove'])
 const isUpdating = ref(false)
 
 // 商品圖片
-const productImage = computed(() => {
-  return props.item.imageUrl || '/images/default-product.jpg'
-})
+const getProductImageUrl = (imageUrl) => {
+  if (!imageUrl) return ''
+  if (imageUrl.startsWith('http')) return imageUrl
+  if (imageUrl.startsWith('/images')) return "http://localhost:8080" + imageUrl
+  if (imageUrl.startsWith('/')) return "http://localhost:8080" + imageUrl
+  return "http://localhost:8080/uploads/products/" + imageUrl
+}
 
 // 減少數量
 const decreaseQuantity = () => {

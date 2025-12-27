@@ -1,19 +1,10 @@
 <template>
-  <div id="app">
-    <!-- 加入 Header -->
-    <Header />
-    <!-- 主要內容 -->
-    <main>
-      <router-view  />
-    </main>
-    <!-- Footer 組件 -->
-    <Footer />
-  </div>
+  <router-view />
 </template>
 
 <script setup>
-import Header from '@/components/layout/Header.vue'
-import Footer from '@/components/layout/Footer.vue'
+// 不需要任何初始化邏輯
+// authStore 在創建時就會自動 loadAuth()
 </script>
 
 <style>

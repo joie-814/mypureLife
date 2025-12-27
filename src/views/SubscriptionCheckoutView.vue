@@ -233,7 +233,7 @@ const fetchPlanInfo = async (planId) => {
     // 先取得所有方案，找到對應的
     const response = await api.get(`/subscriptions/plans/1`) // 需要 productId
     
-    // 由於我們只有 planId，需要另一種方式
+    // 由於只有 planId，需要另一種方式
     // 這裡用一個 workaround：從所有商品的方案中找
     for (let productId = 1; productId <= 10; productId++) {
       try {
@@ -319,7 +319,8 @@ const submitSubscription = async () => {
       quantity: quantity.value,
       recipientName: form.value.recipientName,
       recipientPhone: form.value.recipientPhone,
-      recipientAddress: form.value.recipientAddress
+      recipientAddress: form.value.recipientAddress,
+      paymentMethod: form.value.paymentMethod
     })
 
     if (response.success) {
@@ -424,6 +425,7 @@ const submitSubscription = async () => {
   border-radius: 8px;
   font-size: 16px;
   transition: border-color 0.3s;
+  text-align: left;
 }
 
 .form-group input:focus {

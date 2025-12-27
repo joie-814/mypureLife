@@ -17,7 +17,10 @@
     <div v-else class="product-detail">
       <!-- 商品圖片 -->
       <div class="detail-image">
-        <img :src="productImage" :alt="product.productName">
+        <img 
+          :src="getProductImageUrl(product.imageUrl || '/images/products/default.jpeg')" 
+          :alt="product.productName"
+        />
         <div class="product-badge" v-if="product.promotionPrice">特價</div>
       </div>
       
@@ -184,9 +187,13 @@ const displayPrice = computed(() => {
 })
 
 // 商品圖片
-const productImage = computed(() => {
-  return product.value.imageUrl || '/images/products/default.jpeg'
-})
+const getProductImageUrl = (imageUrl) => {
+  if (!imageUrl) return ''
+  if (imageUrl.startsWith('http')) return imageUrl
+  if (imageUrl.startsWith('/images')) return "http://localhost:8080" + imageUrl
+  if (imageUrl.startsWith('/')) return "http://localhost:8080" + imageUrl
+  return "http://localhost:8080/uploads/products/" + imageUrl
+}
 
 // 生命週期
 onMounted(() => {

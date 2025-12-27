@@ -113,16 +113,19 @@ const fetchProducts = async () => {
       getNewProductsApi(),
       getHotProductsApi()
     ])
-    
     if (newRes.success) {
-      newProducts.value = newRes.data.map(p => ({
+      newProducts.value = newRes.data
+      .slice(0, 4) 
+      .map(p => ({
         ...p,
         badge: 'NEW'
       }))
     }
     
     if (hotRes.success) {
-      bestProducts.value = hotRes.data.map(p => ({
+      bestProducts.value = hotRes.data
+      .slice(0, 4) 
+      .map(p => ({
         ...p,
         badge: 'HOT'
       }))

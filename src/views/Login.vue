@@ -512,7 +512,7 @@ const handleRegister = async() => {
 }
 
 .form-title {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   color: #333;
   margin: 0 0 0.5rem 0;
   font-weight: bold;

@@ -1,7 +1,10 @@
 <template>
   <div class="product-card" @click="goToDetail">
     <div class="product-image">
-      <img :src="productImage" :alt="product.productName">
+      <img 
+        :src="getProductImageUrl(props.product.imageUrl || '/images/products/default.jpeg')" 
+        :alt="props.product.productName"
+      />
       <div class="product-badge" v-if="product.badge">{{ product.badge }}</div>
     </div>
     <div class="product-info">
@@ -42,9 +45,13 @@ const displayPrice = computed(() => {
 })
 
 // 商品圖片
-const productImage = computed(() => {
-  return props.product.imageUrl || '/images/products/default.jpeg'
-})
+const getProductImageUrl = (imageUrl) => {
+  if (!imageUrl) return ''
+  if (imageUrl.startsWith('http')) return imageUrl
+  if (imageUrl.startsWith('/images')) return "http://localhost:8080" + imageUrl
+  if (imageUrl.startsWith('/')) return "http://localhost:8080" + imageUrl
+  return "http://localhost:8080/uploads/products/" + imageUrl
+}
 
 // 快速加入購物車（預設 1 件）
 const handleAddToCart = () => {
