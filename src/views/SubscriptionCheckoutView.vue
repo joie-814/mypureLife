@@ -230,27 +230,13 @@ onMounted(async () => {
 // 取得方案資訊
 const fetchPlanInfo = async (planId) => {
   try {
-    // 先取得所有方案，找到對應的
-    const response = await api.get(`/subscriptions/plans/1`) // 需要 productId
-    
-    // 由於只有 planId，需要另一種方式
-    // 這裡用一個 workaround：從所有商品的方案中找
-    for (let productId = 1; productId <= 10; productId++) {
-      try {
-        const res = await api.get(`/subscriptions/plans/${productId}`)
-        if (res.success && res.data) {
-          const found = res.data.find(p => p.planId === parseInt(planId))
-          if (found) {
-            plan.value = {
-              ...found,
-              productName: await getProductName(productId)
-            }
-            break
-          }
-        }
-      } catch (e) {
-        continue
-      }
+     console.log('查詢 planId:', planId)
+    const response = await api.get(`/subscriptions/plans/byPlanId/${planId}`)
+     console.log('回應:', response)
+    if (response.success) {
+      plan.value = response.data
+    } else {
+      console.error('方案不存在或載入失敗')
     }
   } catch (error) {
     console.error('載入方案失敗:', error)

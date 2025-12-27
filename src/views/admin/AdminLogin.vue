@@ -111,7 +111,7 @@ const handleLogin = async () => {
   border-radius: 16px;
   box-shadow: 0 2px 15px #3A6B5C;
   width: 100%;
-  max-width: 500px;
+  max-width: 430px;
 }
 
 .login-header {
@@ -120,7 +120,7 @@ const handleLogin = async () => {
 }
 
 .login-header h1 {
-  font-size: 28px;
+  font-size: 26px;
   color: #3A6B5C;
   margin-bottom: 10px;
 }

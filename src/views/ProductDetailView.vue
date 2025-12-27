@@ -188,8 +188,10 @@ const displayPrice = computed(() => {
 
 // 商品圖片
 const getProductImageUrl = (imageUrl) => {
+  console.log('原始 imageUrl:', imageUrl)  // ← 加這行
   if (!imageUrl) return ''
   if (imageUrl.startsWith('http')) return imageUrl
+  if (imageUrl.startsWith('/uploads')) return "http://localhost:8080" + imageUrl
   if (imageUrl.startsWith('/images')) return "http://localhost:8080" + imageUrl
   if (imageUrl.startsWith('/')) return "http://localhost:8080" + imageUrl
   return "http://localhost:8080/uploads/products/" + imageUrl

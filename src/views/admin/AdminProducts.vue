@@ -19,16 +19,14 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>圖片</th>
+              <th style="width: 60px">ID</th>
+              <th style="width: 80px">圖片</th>
               <th>商品名稱</th>
-              <th>分類</th>
-              <th>原價</th>
-              <th>促銷價</th>
-              <th>定期購</th>
-              <th>庫存</th>
-              <th>狀態</th>
-              <th>操作</th>
+              <th style="width: 100px">分類</th>
+              <th style="width: 110px">價格</th>
+              <th style="width: 80px">庫存</th>
+              <th style="width: 100px">狀態</th>
+              <th style="width: 100px">操作</th>
             </tr>
           </thead>
           <tbody>
@@ -46,36 +44,38 @@
                 </div>
               </td>
               <td class="product-name">{{ product.productName }}</td>
-              <td>{{ product.category }}</td>
-              <td>NT$ {{ Number(product.price).toLocaleString() }}</td>
               <td>
+              <div class="price-cell">
+                <span class="original-price" :class="{ 'has-promo': product.promotionPrice }">
+                  NT$ {{ Number(product.price).toLocaleString() }}
+                </span>
                 <span v-if="product.promotionPrice" class="promo-price">
                   NT$ {{ Number(product.promotionPrice).toLocaleString() }}
                 </span>
-                <span v-else class="no-promo">-</span>
-              </td>
-              <td>{{ product.stockQuantity }}</td>
-              <td>
-                <select 
-                  class="status-select" 
-                  :class="getStatusClass(product.productStatus)"
-                  v-model="product.productStatus"
-                  @change="updateStatus(product)"
-                >
-                  <option value="available">上架中</option>
-                  <option value="unavailable">已下架</option>
-                </select>
-              </td>
-              <td>
-                <div class="actions">
-                  <button class="btn-edit" @click="openEditModal(product)">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                  <button class="btn-delete" @click="deleteProduct(product)">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </div>
-              </td>
+              </div>
+            </td>
+            <td>{{ product.stockQuantity }}</td>
+            <td>
+              <select 
+                class="status-select" 
+                :class="getStatusClass(product.productStatus)"
+                v-model="product.productStatus"
+                @change="updateStatus(product)"
+              >
+                <option value="available">上架中</option>
+                <option value="unavailable">已下架</option>
+              </select>
+            </td>
+            <td>
+              <div class="actions">
+                <button class="btn-edit" @click="openEditModal(product)">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-delete" @click="deleteProduct(product)">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
             </tr>
           </tbody>
         </table>
@@ -190,6 +190,87 @@
               </select>
             </div>
           </div>
+                    <!-- 定期購設定區塊 -->
+          <div class="subscription-section">
+            <div class="section-header">
+              <label class="toggle-label">
+                <input 
+                  type="checkbox" 
+                  v-model="form.enableSubscription"
+                  class="toggle-checkbox"
+                >
+                <span class="toggle-switch"></span>
+                <span class="toggle-text">啟用定期購</span>
+              </label>
+            </div>
+
+            <div class="subscription-plans" v-if="form.enableSubscription">
+              <p class="section-hint">
+                <i class="fas fa-info-circle"></i>
+                設定此商品可選的定期購方案，會員可依需求選擇配送週期
+              </p>
+
+              <div 
+                class="plan-item" 
+                v-for="(plan, index) in form.subscriptionPlans" 
+                :key="index"
+              >
+                <div class="plan-row">
+                  <div class="plan-field">
+                    <label>週期類型</label>
+                    <select v-model="plan.cycleType" @change="onCycleTypeChange(plan)">
+                      <option value="monthly">每月</option>
+                      <option value="quarterly">每三個月</option>
+                      <option value="biannual">每六個月</option>
+                    </select>
+                  </div>
+                  <div class="plan-field">
+                    <label>週期天數</label>
+                    <input 
+                      type="number" 
+                      v-model="plan.cycleDays" 
+                      placeholder="天數"
+                      min="1"
+                    >
+                  </div>
+                  <div class="plan-field">
+                    <label>折扣 (%)</label>
+                    <input 
+                      type="number" 
+                      v-model="plan.discountRate" 
+                      placeholder="0-100"
+                      min="0"
+                      max="100"
+                    >
+                  </div>
+                  <button 
+                    class="btn-remove-plan" 
+                    @click="removePlan(index)"
+                    type="button"
+                    v-if="form.subscriptionPlans.length > 1"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+                <div class="plan-preview">
+                  <span class="preview-label">預覽：</span>
+                  <span class="preview-text">
+                    {{ getCycleTypeName(plan.cycleType) }}配送（{{ plan.cycleDays || 0 }}天）
+                    <template v-if="plan.discountRate > 0">
+                      ，享 {{ plan.discountRate }}% 折扣
+                      <span class="discount-price" v-if="form.price">
+                        （NT$ {{ formatDiscount(plan.discountRate) }}）
+                      </span>
+                    </template>
+                  </span>
+                </div>
+              </div>
+
+              <button class="btn-add-plan" @click="addPlan" type="button">
+                <i class="fas fa-plus"></i> 新增方案
+              </button>
+            </div>
+          </div>
         </div>
         
         <div class="modal-footer">
@@ -222,6 +303,12 @@ const isUploading = ref(false)
 const uploadProgress = ref(0)
 const isDragOver = ref(false)
 
+const defaultPlan = () => ({
+  cycleType: 'monthly',
+  cycleDays: 30,
+  discountRate: 0.95
+})
+
 const form = ref({
   productName: '',
   category: '',
@@ -230,14 +317,61 @@ const form = ref({
   promotionPrice: '',
   stockQuantity: '',
   productStatus: 'available',
-  imageUrl: ''
+  imageUrl: '',
+  enableSubscription: false,
+  subscriptionPlans: [defaultPlan()]
 })
+
+const cycleTypeDefaults = {
+  monthly: 30,
+  quarterly: 90,
+  biannual: 180
+}
+
+const onCycleTypeChange = (plan) => {
+  plan.cycleDays = cycleTypeDefaults[plan.cycleType] || 30
+}
+
+const getCycleTypeName = (type) => {
+  const names = {
+    'monthly': '每月配送',
+    'quarterly': '每三個月配送',
+    'biannual': '每六個月配送'
+  }
+  return names[type] || type
+}
+
+// 格式化折扣顯示
+const formatDiscount = (discountRate) => {
+  if (!discountRate || discountRate === 1) return ''
+  
+  // 0.95 → 95折, 0.90 → 9折, 0.85 → 85折
+  const discount = discountRate * 100
+  
+  if (discount % 10 === 0) {
+    return `${discount / 10} 折`
+  } else {
+    return `${discount.toFixed(0)} 折`
+  }
+}
+
+const addPlan = () => {
+  if (!form.value.subscriptionPlans) {
+    form.value.subscriptionPlans = [defaultPlan()]
+  } else {
+    form.value.subscriptionPlans.push(defaultPlan())
+  }
+}
+
+const removePlan = (index) => {
+  form.value.subscriptionPlans.splice(index, 1)
+}
 
 // 取得商品圖片 URL
 const getProductImageUrl = (imageUrl) => {
   if (!imageUrl) return ''
   if (imageUrl.startsWith('http')) return imageUrl
-  if (imageUrl.startsWith('/images')) return "http://localhost:8080" + imageUrl
+  if (imageUrl.startsWith('/uploads')) return "http://localhost:8080" + imageUrl
   if (imageUrl.startsWith('/')) return "http://localhost:8080" + imageUrl
   return "http://localhost:8080/uploads/products/" + imageUrl
 }
@@ -412,9 +546,22 @@ const saveProduct = async () => {
   if (!form.value.category.trim()) { alert('請輸入分類'); return }
   if (!form.value.price || form.value.price <= 0) { alert('請輸入有效的價格'); return }
 
+  if (form.value.enableSubscription) {
+    for (const plan of form.value.subscriptionPlans) {
+      if (!plan.cycleDays || plan.cycleDays <= 0) {
+        alert('請輸入有效的週期天數')
+        return
+      }
+    }
+  }
+
   isSaving.value = true
 
   try {
+    let imageUrl = form.value.imageUrl
+    if (selectedFile.value) {
+      imageUrl = await uploadImage()
+    }
     const formData = new FormData()
     formData.append('productName', form.value.productName)
     formData.append('category', form.value.category)
@@ -428,6 +575,7 @@ const saveProduct = async () => {
       formData.append('file', selectedFile.value)
     }
 
+    formData.append('subscriptionPlans', JSON.stringify(form.value.enableSubscription ? form.value.subscriptionPlans : []))
     if (isEdit.value) {
       await adminApi.put(`/admin/products/${editingId.value}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -542,9 +690,10 @@ const getStatusClass = (status) => status === 'available' ? 'status-available' :
 
 .data-table th,
 .data-table td {
-  padding: 15px 12px;
+  padding: 12px 10px;
   text-align: left;
   border-bottom: 1px solid #f0f0f0;
+  white-space: nowrap;
 }
 
 .data-table th {
@@ -559,31 +708,48 @@ const getStatusClass = (status) => status === 'available' ? 'status-available' :
   color: #2c3e50;
 }
 
-
 /* 商品圖片 */
 .product-image {
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   object-fit: cover;
   border-radius: 8px;
   border: 1px solid #e0e0e0;
 }
 
 .no-image {
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   background: #f5f5f5;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #bdc3c7;
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .product-name {
   font-weight: 500;
-  max-width: 200px;
+  max-width: 180px;
+  white-space: normal;
+}
+
+/* 價格欄位 */
+.price-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.original-price {
+  color: #2c3e50;
+}
+
+.original-price.has-promo {
+  color: #999;
+  text-decoration: line-through;
+  font-size: 12px;
 }
 
 .promo-price {
@@ -591,10 +757,7 @@ const getStatusClass = (status) => status === 'available' ? 'status-available' :
   font-weight: 600;
 }
 
-.no-promo {
-  color: #bdc3c7;
-}
-
+/* 狀態選擇 */
 .status-select {
   padding: 6px 10px;
   border-radius: 6px;
@@ -613,6 +776,7 @@ const getStatusClass = (status) => status === 'available' ? 'status-available' :
   color: #721c24;
 }
 
+/* 操作按鈕 */
 .actions {
   display: inline-flex;
   gap: 8px;
@@ -672,7 +836,7 @@ const getStatusClass = (status) => status === 'available' ? 'status-available' :
   background: white;
   border-radius: 12px;
   width: 90%;
-  max-width: 600px;
+  max-width: 700px;
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -742,7 +906,7 @@ const getStatusClass = (status) => status === 'available' ? 'status-available' :
   gap: 15px;
 }
 
-/* 圖片上傳區域 */
+/* 圖片上傳 */
 .image-upload-area {
   margin-bottom: 10px;
 }
@@ -769,7 +933,6 @@ const getStatusClass = (status) => status === 'available' ? 'status-available' :
 .upload-zone.drag-over {
   border-color: #3A6B5C;
   background: #e8f5e9;
-  border-style: solid;
 }
 
 .upload-zone i {
@@ -819,11 +982,6 @@ const getStatusClass = (status) => status === 'available' ? 'status-available' :
   color: white;
   border: none;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  transition: background 0.3s;
 }
 
 .btn-remove-image:hover {
@@ -839,10 +997,6 @@ const getStatusClass = (status) => status === 'available' ? 'status-available' :
   font-size: 13px;
   color: #666;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.3s;
 }
 
 .btn-reselect:hover {
@@ -851,7 +1005,6 @@ const getStatusClass = (status) => status === 'available' ? 'status-available' :
   color: #3A6B5C;
 }
 
-/* 上傳進度 */
 .upload-progress {
   margin-top: 10px;
   display: flex;
@@ -877,7 +1030,170 @@ const getStatusClass = (status) => status === 'available' ? 'status-available' :
 .upload-progress span {
   font-size: 12px;
   color: #666;
-  white-space: nowrap;
+}
+
+/* 定期購設定 */
+.subscription-section {
+  margin-top: 25px;
+  padding-top: 25px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.section-header {
+  margin-bottom: 15px;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-checkbox {
+  display: none;
+}
+
+.toggle-switch {
+  width: 48px;
+  height: 26px;
+  background: #ddd;
+  border-radius: 13px;
+  position: relative;
+  transition: background 0.3s;
+  margin-right: 12px;
+}
+
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-checkbox:checked + .toggle-switch {
+  background: #3A6B5C;
+}
+
+.toggle-checkbox:checked + .toggle-switch::after {
+  transform: translateX(22px);
+}
+
+.toggle-text {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 15px;
+}
+
+.section-hint {
+  font-size: 13px;
+  color: #7f8c8d;
+  margin: 0 0 15px 0;
+  padding: 10px 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.section-hint i {
+  margin-right: 6px;
+  color: #3A6B5C;
+}
+
+.plan-item {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.plan-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.plan-field label {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.plan-field input,
+.plan-field select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.plan-field input:focus,
+.plan-field select:focus {
+  outline: none;
+  border-color: #3A6B5C;
+}
+
+.btn-remove-plan {
+  padding: 10px 12px;
+  background: #ffebee;
+  color: #c62828;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-remove-plan:hover {
+  background: #c62828;
+  color: white;
+}
+
+.plan-preview {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #ddd;
+  font-size: 13px;
+}
+
+.preview-label {
+  color: #999;
+}
+
+.preview-text {
+  color: #2c3e50;
+}
+
+.discount-price {
+  color: #e74c3c;
+  font-weight: 600;
+}
+
+.btn-add-plan {
+  width: 100%;
+  padding: 12px;
+  background: white;
+  border: 2px dashed #3A6B5C;
+  border-radius: 8px;
+  color: #3A6B5C;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-add-plan:hover {
+  background: #f0f7f4;
 }
 
 .modal-footer {
@@ -931,17 +1247,9 @@ const getStatusClass = (status) => status === 'available' ? 'status-available' :
     align-items: flex-start;
   }
 
-  .form-row {
+  .form-row,
+  .plan-row {
     grid-template-columns: 1fr;
-  }
-
-  .upload-zone {
-    height: 150px;
-  }
-
-  .image-preview {
-    width: 150px;
-    height: 150px;
   }
 }
 </style>
